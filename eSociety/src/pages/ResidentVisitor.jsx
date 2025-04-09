@@ -1,92 +1,81 @@
-// src/pages/ResidentVisitor.jsx
+// src/pages/ResidentVisitors.jsx
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
-const ResidentVisitor = () => {
+const ResidentVisitors = () => {
   const { user } = useContext(AuthContext);
   const [visitors, setVisitors] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  // Fetch pending visitors on mount
   useEffect(() => {
-    const fetchVisitors = async () => {
-      try {
-        const response = await axios.get('http://localhost:8000/api/visitors/pending', {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
-        setVisitors(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching visitors:', error);
-        setLoading(false);
-      }
-    };
-    if (user) {
-      fetchVisitors();
+    if (!user || user.role !== 'resident') {
+      navigate('/login');
+      return;
     }
-  }, [user]);
+    fetchVisitors();
+  }, [user, navigate]);
 
-  // Handle approve/deny action
-  const handleVisitorAction = async (visitorId, decision) => {
+  const fetchVisitors = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/api/visitors/pending', {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      setVisitors(response.data);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to fetch visitors');
+    }
+  };
+
+  const handleDecision = async (visitorId, decision) => {
     try {
       await axios.post(
         `http://localhost:8000/api/visitors/${visitorId}/${decision}`,
         {},
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
-      setVisitors(visitors.filter((visitor) => visitor._id !== visitorId));
-      alert(`Visitor ${decision}ed`);
-    } catch (error) {
-      console.error(`Error ${decision}ing visitor:`, error);
-      alert(`Failed to ${decision} visitor`);
+      fetchVisitors();
+    } catch (err) {
+      setError(err.response?.data?.detail || `Failed to ${decision} visitor`);
     }
   };
 
-  if (loading) return <div className="spinner-border mx-auto d-block mt-5" role="status"></div>;
-
   return (
     <div className="container py-5">
-      <h2
-        className="text-center mb-4"
-        style={{ fontWeight: 'bold', color: '#333' }}
-      >
-        Visitor Management
-      </h2>
-      {visitors.length === 0 ? (
-        <p className="text-center">No pending visitors.</p>
-      ) : (
-        <ul className="list-group">
-          {visitors.map((visitor) => (
-            <li
-              key={visitor._id}
-              className="list-group-item d-flex justify-content-between align-items-center"
-            >
-              <div>
-                <strong>{visitor.name}</strong> - {visitor.purpose}
-                <br />
-                <small className="text-muted">Time: {visitor.time}</small>
-              </div>
-              <div>
-                <button
-                  className="btn btn-sm btn-success me-2"
-                  onClick={() => handleVisitorAction(visitor._id, 'approve')}
-                >
-                  Approve
-                </button>
-                <button
-                  className="btn btn-sm btn-danger"
-                  onClick={() => handleVisitorAction(visitor._id, 'deny')}
-                >
-                  Deny
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+      <h2 className="mb-4">Pending Visitors</h2>
+      {error && <div className="alert alert-danger">{error}</div>}
+
+      <h3>Visitors Awaiting Approval</h3>
+      <div className="list-group">
+        {visitors.map((visitor) => (
+          <div key={visitor._id} className="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <strong>{visitor.name}</strong>
+              <p>Purpose: {visitor.purpose}</p>
+              <p>Status: {visitor.status}</p>
+              <p>Created on: {new Date(visitor.created_at).toLocaleDateString()}</p>
+            </div>
+            <div>
+              <button
+                className="btn btn-success me-2"
+                onClick={() => handleDecision(visitor._id, 'approve')}
+              >
+                Approve
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={() => handleDecision(visitor._id, 'deny')}
+              >
+                Deny
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
 
-export default ResidentVisitor;
+export default ResidentVisitors;

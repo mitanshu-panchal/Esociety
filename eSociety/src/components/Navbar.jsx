@@ -2,20 +2,22 @@
 import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { FaHome, FaBook, FaExclamationCircle, FaUser, FaSignOutAlt } from 'react-icons/fa';
 
-const AppNavbar = () => {
-  const { user, logout } = useContext(AuthContext);
+const Navbar = () => {
+  const { user, setUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
+    setUser(null);
+    localStorage.removeItem('user');
     navigate('/login');
   };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
+    <nav className="navbar navbar-expand-lg navbar-light bg-light">
       <div className="container">
-        <Link className="navbar-brand" to="/" style={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
+        <Link className="navbar-brand" to="/">
           eSociety
         </Link>
         <button
@@ -36,44 +38,68 @@ const AppNavbar = () => {
                 {user.role === 'resident' && (
                   <>
                     <li className="nav-item">
-                      <Link className="nav-link" to="/resident/dashboard">
-                        Dashboard
-                      </Link>
-                    </li>
-                    <li className="nav-item">
-                      <Link className="nav-link" to="/resident/visitors">
-                        Visitors
-                      </Link>
-                    </li>
-                    <li className="nav-item">
-                      <Link className="nav-link" to="/resident/complaints">
-                        Complaints
+                      <Link className="nav-link" to="/resident/Dashboard">
+                        <FaBook /> Dashboard
                       </Link>
                     </li>
                     <li className="nav-item">
                       <Link className="nav-link" to="/resident/bookings">
-                        Bookings
+                        <FaBook /> Book Facility
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/resident/complaints">
+                        <FaExclamationCircle /> Complaints
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/resident/visitors">
+                        <FaUser /> Visitors
                       </Link>
                     </li>
                   </>
                 )}
                 {user.role === 'admin' && (
-                  <li className="nav-item">
-                    <Link className="nav-link" to="/admin/dashboard">
-                      Admin Panel
-                    </Link>
-                  </li>
+                  <>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/admin/dashboard">
+                        <FaHome /> Dashboard
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/admin/bookings">
+                        <FaBook /> Bookings
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/admin/complaints">
+                        <FaExclamationCircle /> Complaints
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/admin/visitors">
+                        <FaUser /> Visitors
+                      </Link>
+                    </li>
+                  </>
                 )}
                 {user.role === 'security' && (
-                  <li className="nav-item">
-                    <Link className="nav-link" to="/security/log">
-                      Security Log
-                    </Link>
-                  </li>
+                  <>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/security/dashboard">
+                        <FaHome /> Dashboard
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/security/visitors">
+                        <FaUser /> Visitors
+                      </Link>
+                    </li>
+                  </>
                 )}
                 <li className="nav-item">
                   <button className="nav-link btn btn-link" onClick={handleLogout}>
-                    Logout
+                    <FaSignOutAlt /> Logout
                   </button>
                 </li>
               </>
@@ -91,4 +117,4 @@ const AppNavbar = () => {
   );
 };
 
-export default AppNavbar;
+export default Navbar;

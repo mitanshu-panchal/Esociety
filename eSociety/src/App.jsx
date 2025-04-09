@@ -13,9 +13,15 @@ import AdminFacilities from './pages/AdminFacilities'; // Added
 import AdminComplaints from './pages/AdminComplaints'; // Added
 import AdminBookings from './pages/AdminBookings'; // Added
 import AdminVisitors from './pages/AdminVisitors'; // Added
+import SecurityVisitors from './pages/SecurityVisitors';
+import SecurityDashboard from './pages/SecurityDashboard'; // New
+// import ResidentComplaints from './pages/ResidentComplaints'; // New
+// import AdminComplaints from './pages/AdminComplaints';
 import Login from './pages/Login';
 
 const App = () => {
+  console.log("AuthProvider rendering app");
+  
   return (
     <AuthProvider>
       <Router>
@@ -94,6 +100,8 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route path="/security/dashboard" element={<SecurityDashboard />} />
+          <Route path="/security/visitors" element={<SecurityVisitors />} />
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="*" element={<div>404 - Page Not Found</div>} />
         </Routes>

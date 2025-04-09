@@ -2,86 +2,73 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const AdminComplaints = () => {
   const { user } = useContext(AuthContext);
   const [complaints, setComplaints] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchComplaints = async () => {
-      try {
-        const response = await axios.get('http://localhost:8000/api/admin/complaints', {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
-        setComplaints(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching complaints:', error);
-        setLoading(false);
-      }
-    };
-    if (user) {
-      fetchComplaints();
+    if (!user || user.role !== 'admin') {
+      navigate('/login');
+      return;
     }
-  }, [user]);
+    fetchComplaints();
+  }, [user, navigate]);
 
-  const handleResolveComplaint = async (complaintId) => {
-    if (!window.confirm('Are you sure you want to mark this complaint as resolved?')) return;
+  const fetchComplaints = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/api/admin/complaints', {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      setComplaints(response.data);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to fetch complaints');
+    }
+  };
+
+  const handleResolve = async (complaintId) => {
     try {
       await axios.post(
         `http://localhost:8000/api/admin/complaints/${complaintId}/resolve`,
         {},
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
-      setComplaints(
-        complaints.map((c) =>
-          c._id === complaintId ? { ...c, status: 'resolved', resolved_at: new Date().toISOString() } : c
-        )
-      );
-      alert('Complaint resolved successfully');
-    } catch (error) {
-      console.error('Error resolving complaint:', error);
-      alert('Failed to resolve complaint');
+      fetchComplaints();
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to resolve complaint');
     }
   };
 
-  if (loading) return <div className="spinner-border mx-auto d-block mt-5" role="status"></div>;
-
   return (
     <div className="container py-5">
-      <h2 className="text-center mb-4" style={{ fontWeight: 'bold', color: '#333' }}>
-        Manage Complaints
-      </h2>
-      {complaints.length === 0 ? (
-        <p className="text-center">No complaints found.</p>
-      ) : (
-        <ul className="list-group">
-          {complaints.map((complaint) => (
-            <li
-              key={complaint._id}
-              className="list-group-item d-flex justify-content-between align-items-center"
-            >
-              <div>
-                <strong>{complaint.title}</strong> - {complaint.description}
-                <br />
-                <small className="text-muted">
-                  Status: {complaint.status} | Created: {new Date(complaint.created_at).toLocaleString()}
-                  {complaint.status === 'resolved' && ` | Resolved: ${new Date(complaint.resolved_at).toLocaleString()}`}
-                </small>
-              </div>
-              {complaint.status === 'pending' && (
-                <button
-                  className="btn btn-sm btn-success"
-                  onClick={() => handleResolveComplaint(complaint._id)}
-                >
-                  Resolve
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+      <h2 className="mb-4">Manage Complaints</h2>
+      {error && <div className="alert alert-danger">{error}</div>}
+
+      <h3>All Complaints</h3>
+      <div className="list-group">
+        {complaints.map((complaint) => (
+          <div key={complaint._id} className="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <strong>{complaint.title}</strong>
+              <p>{complaint.description}</p>
+              <p>Status: {complaint.status}</p>
+              <p>Filed by Resident ID: {complaint.resident_id}</p>
+              <p>Filed on: {new Date(complaint.created_at).toLocaleDateString()}</p>
+            </div>
+            {complaint.status === 'pending' && (
+              <button
+                className="btn btn-success"
+                onClick={() => handleResolve(complaint._id)}
+              >
+                Resolve
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

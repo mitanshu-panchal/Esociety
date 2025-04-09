@@ -11,7 +11,12 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Any
 from pydantic import BaseModel
 import re
-import logging  # Added for debugging
+import logging
+import os  # Added for environment variables
+from dotenv import load_dotenv  # Added for loading .env file
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -29,7 +34,7 @@ app.add_middleware(
 )
 
 # MongoDB setup
-client = MongoClient("mongodb://localhost:27017")
+client = MongoClient(os.getenv("MONGO_URI", "mongodb://localhost:27017"))
 db = client["esocietydb"]
 users_collection = db["users"]
 complaints_collection = db["complaints"]
@@ -38,9 +43,9 @@ visitors_collection = db["visitors"]
 facilities_collection = db["facilities"]
 
 # JWT setup
-SECRET_KEY = "1710"
+SECRET_KEY = os.getenv("SECRET_KEY", "1710")  # Use environment variable
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60  # Increased to 60 minutes
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -68,6 +73,10 @@ class ComplaintCreate(BaseModel):
 class BookingCreate(BaseModel):
     facility_id: str
     slot: str
+
+class VisitorCreate(BaseModel):  # Added for input validation
+    name: str
+    purpose: str
 
 # Helper functions
 def verify_password(plain_password, hashed_password):
@@ -123,6 +132,11 @@ async def register_user(user: RegisterUser, current_user: dict = Depends(get_cur
         raise HTTPException(status_code=403, detail="Only admins can register new users")
     if users_collection.find_one({"email": user.email}):
         raise HTTPException(status_code=400, detail="Email already registered")
+    # Password validation
+    if len(user.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
+    if not re.search(r"[A-Za-z]", user.password) or not re.search(r"\d", user.password):
+        raise HTTPException(status_code=400, detail="Password must contain both letters and numbers")
     hashed_password = get_password_hash(user.password)
     user_data = {
         "email": user.email,
@@ -440,19 +454,18 @@ async def get_all_visitors_for_security(current_user: dict = Depends(get_current
 
 @app.post("/api/security/visitors")
 async def add_visitor(
-    name: str,
-    purpose: str,
+    visitor: VisitorCreate,  # Updated to use Pydantic model
     current_user: dict = Depends(get_current_user),
 ):
     if current_user["role"] != "security":
         raise HTTPException(status_code=403, detail="Only security personnel can add visitors")
-    visitor = {
-        "name": name,
-        "purpose": purpose,
+    visitor_data = {
+        "name": visitor.name,
+        "purpose": visitor.purpose,
         "status": "pending",
         "created_at": datetime.utcnow(),
     }
-    result = visitors_collection.insert_one(visitor)
+    result = visitors_collection.insert_one(visitor_data)
     return {"visitor_id": str(result.inserted_id)}
 
 @app.post("/api/security/visitors/{visitor_id}/update-status")

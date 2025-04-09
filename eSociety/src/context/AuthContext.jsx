@@ -1,48 +1,47 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useState, useEffect } from 'react';
-import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 
-export const AuthContext = createContext();
+// Create the context with a default value
+export const AuthContext = createContext({
+  user: null,
+  login: () => {}, // Default empty function to avoid undefined errors
+  setUser: () => {},
+});
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        axios
-          .get('http://localhost:8000/me', {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            setUser({ ...response.data, token });
-            setLoading(false);
-          })
-          .catch(() => {
-            localStorage.removeItem('token');
-            setLoading(false);
-          });
-      } catch (error) {
-        localStorage.removeItem('token');
-        setLoading(false);
-      }
-    } else {
-      setLoading(false);
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
   }, []);
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
+  const login = async (email, password) => {
+    try {
+      const response = await axios.post('http://localhost:8000/login', { username: email, password }, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+      const { access_token } = response.data;
+      const userResponse = await axios.get('http://localhost:8000/me', {
+        headers: { Authorization: `Bearer ${access_token}` },
+      });
+      const userData = { ...userResponse.data, token: access_token };
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+    } catch (err) {
+      throw new Error(err.response?.data?.detail || 'Login failed');
+    }
   };
 
+  // Log the value being provided to debug
+  console.log('AuthProvider value:', { user, login, setUser });
+
   return (
-    <AuthContext.Provider value={{ user, setUser, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, setUser }}>
       {children}
     </AuthContext.Provider>
   );
-};  
+};

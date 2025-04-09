@@ -1,20 +1,234 @@
 /* src/styles/index.css */
-body {
-  font-family: 'Roboto', sans-serif;
+
+/* Reset and base styles */
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
+body {
+  font-family: 'Roboto', sans-serif; /* Modern sans-serif font */
+  background-color: #f8f9fa; /* Light neutral background */
+  color: #333; /* Dark text for readability */
+  line-height: 1.6; /* Improved readability */
+}
+
+/* Typography enhancements */
+h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+h3 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+h4, h5, h6 {
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+p, .card-text {
+  font-size: 1rem;
+  color: #555;
+}
+
+/* Container and layout optimization */
+.container {
+  max-width: 1200px;
+  width: 100%;
+  padding: 40px 20px;
+  margin: 0 auto;
+}
+
+/* Navbar styling */
+.navbar {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e3a8a !important;
+}
+.nav-link {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1e3a8a !important;
+  transition: color 0.3s ease;
+}
+.nav-link:hover {
+  color: #2563eb !important;
+}
+
+/* Card styling for a polished look */
 .card {
+  border: none;
+  border-radius: 12px; /* Slightly larger radius for modernity */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden; /* Ensure content stays within rounded corners */
 }
-
 .card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+.card-body {
+  padding: 24px; /* Increased padding for elegance */
+}
+.card-title {
+  font-size: 1.25rem;
+  color: #1e3a8a;
+  margin-bottom: 0.75rem;
+}
+.card-text {
+  font-size: 1.1rem;
+  color: #666;
 }
 
+/* Button styling with Kody-inspired accents */
+.btn {
+  border-radius: 8px; /* Rounded buttons */
+  padding: 10px 20px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+.btn-primary {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
 .btn-primary:hover {
-  background-color: #00a89a !important;
-  border-color: #00a89a !important;
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+  background-color: #0a8a9a !important; /* Retain existing teal hover */
+  border-color: #0a8a9a !important;
+}
+.btn-success {
+  background-color: #10b981;
+  border-color: #10b981;
+}
+.btn-success:hover {
+  background-color: #059669;
+  border-color: #059669;
+}
+
+/* Form styling */
+.form-control {
+  border-radius: 8px;
+  border-color: #dee2e6;
+  transition: border-color 0.3s ease;
+}
+.form-control:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+}
+.form-label {
+  font-weight: 500;
+  color: #1e3a8a;
+  margin-bottom: 0.5rem;
+}
+
+/* Alert styling */
+.alert {
+  border-radius: 8px;
+  font-size: 1rem;
+  padding: 15px;
+}
+.alert-success {
+  background-color: #d1fae5;
+  border-color: #10b981;
+  color: #065f46;
+}
+.alert-danger {
+  background-color: #fee2e2;
+  border-color: #dc2626;
+  color: #991b1b;
+}
+
+/* List group styling */
+.list-group-item {
+  border: none;
+  border-bottom: 1px solid #eee;
+  border-radius: 0;
+  padding: 15px 20px;
+  transition: background-color 0.3s ease;
+}
+.list-group-item:hover {
+  background-color: #f1f5f9;
+}
+.list-group-item:last-child {
+  border-bottom: none;
+}
+
+/* Sidebar styling */
+.bg-dark {
+  background-color: #1e3a8a !important;
+  color: #fff !important;
+  padding: 20px;
+  min-height: 100vh;
+}
+.sidebar-link {
+  color: #fff !important;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  display: block;
+  padding: 10px 0;
+  transition: color 0.3s ease;
+}
+.sidebar-link:hover {
+  color: #2563eb !important;
+}
+
+/* Responsive design */
+@media (max-width: 991px) {
+  .container {
+    padding: 20px 10px;
+  }
+  .navbar-nav {
+    flex-direction: row !important;
+  }
+  .nav-link {
+    padding: 0.5rem 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .col-md-4, .col-md-8 {
+    margin-bottom: 20px;
+  }
+  .card {
+    margin-bottom: 20px;
+  }
+  .bg-dark {
+    width: 100%;
+    height: auto;
+    position: relative;
+    padding: 15px;
+  }
+  .container {
+    margin-left: 0;
+  }
+  .d-flex {
+    flex-direction: column;
+  }
+  h2 {
+    font-size: 1.75rem;
+  }
+  .card-body {
+    padding: 16px;
+  }
+}
+
+/* Animation for subtle interactivity */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.card, .alert {
+  animation: fadeIn 0.5s ease-in-out;
 }

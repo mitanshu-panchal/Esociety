@@ -21,14 +21,11 @@ const ResidentComplaints = () => {
 
   const fetchComplaints = async () => {
     try {
-      console.log('Fetching complaints for user:', user._id);
       const response = await axios.get('http://localhost:8000/api/complaints', {
         headers: { Authorization: `Bearer ${user.token}` },
       });
-      console.log('Complaints fetched:', response.data);
       setComplaints(response.data);
     } catch (err) {
-      console.error('Error fetching complaints:', err);
       setError(err.response?.data?.detail || 'Failed to fetch complaints');
     }
   };
@@ -36,48 +33,36 @@ const ResidentComplaints = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (!newComplaint.title || !newComplaint.description) {
-        setError('Please provide both an issue type and description');
-        return;
-      }
-      const payload = { title: newComplaint.title, description: newComplaint.description };
-      console.log('Submitting complaint:', payload);
       const response = await axios.post(
         'http://localhost:8000/api/complaints',
-        payload,
+        newComplaint,
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
-      console.log('Complaint submitted:', response.data);
       setNewComplaint({ title: '', description: '' });
       fetchComplaints();
+      setError('');
     } catch (err) {
-      console.error('Error submitting complaint:', err);
-      setError(err.response?.data?.detail || 'Failed to submit complaint');
+      setError(err.response?.data?.detail || 'Failed to file complaint');
     }
   };
 
   return (
     <div className="container py-5">
-      <h2 className="mb-4">Complaint Tracking</h2>
+      <h2 className="mb-4">File a Complaint</h2>
       {error && <div className="alert alert-danger">{error}</div>}
 
       <h3>File a New Complaint</h3>
       <form onSubmit={handleSubmit} className="mb-4">
         <div className="mb-3">
-          <label htmlFor="issueType" className="form-label">Issue Type</label>
-          <select
-            id="issueType"
+          <label htmlFor="title" className="form-label">Title</label>
+          <input
+            type="text"
+            id="title"
             className="form-control"
             value={newComplaint.title}
             onChange={(e) => setNewComplaint({ ...newComplaint, title: e.target.value })}
             required
-          >
-            <option value="">Select an issue type</option>
-            <option value="Maintenance">Maintenance</option>
-            <option value="Noise">Noise</option>
-            <option value="Parking">Parking</option>
-            <option value="Other">Other</option>
-          </select>
+          />
         </div>
         <div className="mb-3">
           <label htmlFor="description" className="form-label">Description</label>
@@ -89,7 +74,7 @@ const ResidentComplaints = () => {
             required
           />
         </div>
-        <button type="submit" className="btn btn-primary">Submit</button>
+        <button type="submit" className="btn btn-primary">Submit Complaint</button>
       </form>
 
       <h3>Your Complaints</h3>
